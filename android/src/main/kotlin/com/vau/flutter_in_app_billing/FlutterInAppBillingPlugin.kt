@@ -2,6 +2,7 @@ package com.vau.flutter_in_app_billing
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.annotation.NonNull
 import com.anjlab.android.iab.v3.BillingProcessor
 import com.anjlab.android.iab.v3.TransactionDetails
@@ -13,7 +14,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry.Registrar
+import java.lang.Exception
 
 /** FlutterInAppBillingPlugin */
 class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
@@ -22,7 +23,6 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
   private lateinit var channel: MethodChannel
   private var bp: BillingProcessor? = null
   private lateinit var context: Context
-  private var result: Result? = null
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_inApp_billing")
@@ -30,7 +30,7 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
   }
 
   override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-    this.result = result
+    methodResult = result
 
     when (call.method) {
       "init_bp" -> {
@@ -40,11 +40,25 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
       }
 
       "check_purchase" -> {
-        checkProduct(call.argument<String>("productId").toString())
+        val isBought = checkProduct(call.argument<String>("productId").toString())
+        if (bp != null) {
+          result.success(hashMapOf("result" to isBought))
+        } else {
+          result.error("1",
+                  "billing processor has not been initialize",
+                  null)
+        }
       }
 
       "check_subscription" -> {
-        checkProduct(call.argument<String>("productId").toString())
+        val isSubscribed = checkProduct(call.argument<String>("productId").toString())
+        if (bp != null) {
+          result.success(hashMapOf("result" to isSubscribed))
+        } else {
+          result.error("1",
+                  "billing processor has not been initialize",
+                  null)
+        }
       }
 
       "purchase_info" -> {
@@ -66,7 +80,7 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
         if (!checkProduct(PRODUCT_ID)) {
           bp?.subscribe(context as Activity, PRODUCT_ID)
         } else {
-          result.success(hashMapOf("result" to "subscribe"))
+          result.success(hashMapOf("result" to "subscribed"))
         }
       }
     }
@@ -107,7 +121,7 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
     if (bp != null) {
       val skuDetails = bp?.getPurchaseListingDetails(productId)
       if (skuDetails != null) {
-        result?.success(hashMapOf(
+        methodResult?.success(hashMapOf(
                 "result" to true,
                 "skuDetails" to hashMapOf(
                         "currency" to skuDetails.currency,
@@ -120,37 +134,30 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
                         "subscriptionFreeTrialPeriod" to skuDetails.subscriptionFreeTrialPeriod
                 )))
       } else {
-        result?.error("2",
+        methodResult?.error("2",
                 "skuDetails return null",
                 null)
       }
     } else {
-      result?.error("1",
+      methodResult?.error("1",
               "billing processor has not been initialize",
               null)
     }
   }
 
   private fun checkProduct(productId: String?): Boolean {
-    val isBought: Boolean = bp?.isPurchased(productId) ?: false
-    if (bp != null) {
-      result?.success(hashMapOf("result" to bp?.isPurchased(productId)))
-    } else {
-      result?.error("1",
-              "billing processor has not been initialize",
-              null)
-    }
-    return isBought
+    return bp?.isPurchased(productId) ?: false
   }
 
   override fun onBillingInitialized() {
-    result?.success(hashMapOf("result" to true))
+    Log.i(TAG, "Billing Processor Initialized")
+    methodResult?.success(hashMapOf("result" to true))
   }
 
   override fun onPurchaseHistoryRestored() {}
 
   override fun onProductPurchased(productId: String, details: TransactionDetails?) {
-    result?.success(hashMapOf(
+    methodResult?.success(hashMapOf(
             "result" to true,
             "productId" to productId,
             "details" to hashMapOf(
@@ -163,9 +170,14 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
   }
 
   override fun onBillingError(errorCode: Int, error: Throwable?) {
-    result?.success(hashMapOf(
-            "result" to false,
-            "error" to error.toString()))
+    Log.i(TAG, "Billing Processor Error")
+    try {
+      methodResult?.success(hashMapOf(
+              "result" to false,
+              "error" to error.toString()))
+    } catch (e: Exception) {
+      Log.i(TAG, e.toString())
+    }
   }
 
   companion object {
@@ -174,5 +186,10 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
 
     @JvmStatic
     var PRODUCT_ID: String? = ""
+
+    @JvmStatic
+    var methodResult: Result? = null
+
+    const val TAG : String = "FlutterInAppBilling"
   }
 }
