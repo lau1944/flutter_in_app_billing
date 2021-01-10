@@ -172,9 +172,9 @@ class FlutterInAppBillingPlugin: FlutterPlugin, MethodCallHandler,
   override fun onBillingError(errorCode: Int, error: Throwable?) {
     Log.i(TAG, "Billing Processor Error")
     try {
-      methodResult?.success(hashMapOf(
-              "result" to false,
-              "error" to error.toString()))
+      result.error("2",
+              "Billing Processor Error",
+              null)
     } catch (e: Exception) {
       Log.i(TAG, e.toString())
     }
