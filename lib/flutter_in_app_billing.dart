@@ -14,7 +14,7 @@ class FlutterInAppBilling {
   /// return form
   /// [{ 'result' : true }]// true when init success
   /// [{'result' : false, 'error' : errorMessage}] //false when init error
-  static Future<Map> initBp(String licenseKey) async {
+  static Future initBp(String licenseKey) async {
     return _channel.invokeMethod("init_bp", {"key": licenseKey});
   }
 
@@ -22,7 +22,7 @@ class FlutterInAppBilling {
   /// [productId] your product id
   /// return form
   /// [{ 'result' : true }] // true -> user had already purchased, false -> user had not purchased
-  static Future<Map> checkPurchase(String productId) async {
+  static Future checkPurchase(String productId) async {
     return _channel.invokeMethod("check_purchase",
         {'productId': productId});
   }
@@ -31,7 +31,7 @@ class FlutterInAppBilling {
   /// [productId] your product id
   /// return form
   /// [{ 'result' : true }] // true -> user had already subscribed, false -> user had not subscribed
-  static Future<Map> checkSubscription(String productId) async {
+  static Future checkSubscription(String productId) async {
     return _channel.invokeMethod("check_subscription",
         {'productId': productId});
   }
@@ -49,7 +49,7 @@ class FlutterInAppBilling {
   ///       "introductoryPricePeriod" : skuDetails.introductoryPricePeriod,
   ///       "introductoryPriceText" : skuDetails.introductoryPriceText,
   ///      "subscriptionFreeTrialPeriod" : skuDetails.subscriptionFreeTrialPeriod }
-  static Future<Map> getPurchaseInfo(String productId) async {
+  static Future getPurchaseInfo(String productId) async {
     return _channel.invokeMethod('purchase_info', {
       'productId' : productId
     });
@@ -70,7 +70,7 @@ class FlutterInAppBilling {
   /// [( "result" : false,
   ///  "error" : error.toString())]
   /// -> User had not purchased
-  static Future<Map> purchase(String productId) async {
+  static Future purchase(String productId) async {
     return _channel.invokeMethod('purchase', {
       'productId' : productId
     });
@@ -78,7 +78,7 @@ class FlutterInAppBilling {
 
   /// Subscribe
   /// return form same as [purchase]
-  static Future<Map> subscribe(String productId) async {
+  static Future subscribe(String productId) async {
     return _channel.invokeMethod('subscribe', {
       'productId' : productId
     });
