@@ -4,12 +4,6 @@ A Flutter Plugin for google play in app billing
 
 ## Getting Started
 
-Add this on your app dependencies
-
-```java
-    implementation 'com.anjlab.android.iab.v3:library:1.0.44'
-```
-
 ### Init
 
 Init billing processor before any operation begins

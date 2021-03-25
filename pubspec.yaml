@@ -1,8 +1,8 @@
 name: flutter_in_app_billing
 description: A Flutter Plugin for google play in app billing
 version: 0.0.1
-author:
-homepage:
+
+repository: https://github.com/lau1944/flutter_in_app_billing
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
